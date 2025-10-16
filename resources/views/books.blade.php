@@ -6,7 +6,7 @@
     <title>Book List</title>
 </head>
 <body>
-    <h1>Hello World!</h1>
+    <h1>Hello Reader!</h1>
     <p>Selamat datang di toko BookSells</p>
 
     @foreach ($books as $item)

@@ -8,10 +8,10 @@
 <body>
     <h3>Ini adalah halaman penulis dari buku.</h3>
 
-    @foreach ($authors as $item)
+    @foreach ($authors as $author)
     <ul>
-        <li>{{ $item['name'] }}</li>
-        <li>{{ $item['bio'] }}</li>
+        <li>{{ $author['name'] }}</li>
+        <li>{{ $author['bio'] }}</li>
     </ul>
     @endforeach
 </body>
