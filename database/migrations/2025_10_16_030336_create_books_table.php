@@ -5,6 +5,8 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use League\CommonMark\Extension\DescriptionList\Node\DescriptionTerm;
 
+use function Laravel\Prompts\table;
+
 return new class extends Migration
 {
     /**
@@ -17,7 +19,10 @@ return new class extends Migration
             $table->string('title');
             $table->text('description');
             $table->decimal('price', 10,2);
-            $table->unsignedInteger('stock');           
+            $table->integer('stock');           
+            $table->string('cover_photo');
+            $table->unsignedBigInteger('genre_id');
+            $table->unsignedBigInteger('author_id');
             $table->timestamps();
         });
     }
