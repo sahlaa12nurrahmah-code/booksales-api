@@ -4,14 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Author;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Request as FacadesRequest;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class AuthorController extends Controller
 {
     public function index() {
         $authors = Author::all();
-        
+
         if ($authors->isEmpty()) {
             return response()->json([
                 'success' => false,
@@ -20,7 +20,7 @@ class AuthorController extends Controller
         }
 
         return response()->json([
-            "succes" => true,
+            "success" => true,
             "message" => "Get All Resource",
             "data" => $authors
         ], 200);
@@ -28,7 +28,7 @@ class AuthorController extends Controller
 
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(),[
+        $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:100',
             'bio' => 'required|string',
             'photo' => 'required|image|mimes:jpeg,jpg,png|max:2048',
@@ -41,18 +41,108 @@ class AuthorController extends Controller
             ], 422);
         }
 
-        $path = $request->file('photo')->store('uploads', 'public');
+        $path = $request->file('photo')->store('authors', 'public');
 
-        $authors = Author::create([
+        $author = Author::create([
             'name' => $request->name,
-            'bio' =>$request->bio,
+            'bio' => $request->bio,
             'photo' => $path,
         ]);
 
         return response()->json([
             'success' => true,
             'message' => 'Resource added successfully!',
-            'data' => $authors
+            'data' => $author
         ], 201);
+    }
+
+    public function show(string $id)
+    {
+        $author = Author::find($id);
+
+        if (!$author) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Resource not found.'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Get Detail Resource.',
+            'data' => $author
+        ], 200);
+    }
+
+    public function update(Request $request, string $id)
+    {
+        $author = Author::find($id);
+
+        if (!$author) {
+            return response()->json([
+                'success' => false,
+                'message' => "Resource not found."
+            ], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:100',
+            'bio' => 'required|string',
+            'photo' => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->errors()
+            ], 422);
+        }
+
+        $data = [
+            'name' => $request->name,
+            'bio' => $request->bio,
+        ];
+
+        if ($request->hasFile('photo')) {
+            $image = $request->file('photo');
+            $image->store('authors', 'public');
+
+            if ($author->photo) {
+                Storage::disk('public')->delete('authors/' . basename($author->photo));
+            }
+
+            $data['photo'] = $image->hashName();
+        }
+
+        $author->update($data);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Resource updated successfully!',
+            'data' => $author
+        ], 200);
+    }
+
+    public function destroy(string $id)
+    {
+        $author = Author::find($id);
+
+        if (!$author) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Resource not found.'
+            ], 404);
+        }
+
+        if ($author->photo) {
+            Storage::disk('public')->delete('authors/' . basename($author->photo));
+        }
+
+        $author->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Delete resource successfully.'
+        ], 200);
     }
 }
